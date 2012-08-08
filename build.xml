@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     Oct 15, 2011 2:26:11 PM                                                        
+
+     QuickToDo    
+     A Planner/Manager
+                   
+     v                                                                
+     ====================================================================== -->
+<project name="QuickToDo" default="default">
+    <description>
+            description
+    </description>
+	<property name="build" value="target/"/>
+	<property name="compileTarget" value="bin/"/>
+	<property name="srcDir" value="src"/>
+	<property file="build.properties" />
+
+	<path id="classpath">
+		<fileset dir="${env.Lib}/">
+		  <!--<patternset id="non.test.sources"> -->
+		    <include name="**/*.jar"/>
+		  <!--</patternset> -->
+		</fileset>
+	</path>
+	
+	  <!-- create a property containing all .jar files, prefix lib/, and seperated with a space -->
+	  <pathconvert property="libs.project" pathsep=" ">
+	    <mapper type="regexp" from = "[/\\](lib[/\\].+)" to = "\1">
+	    </mapper>
+	 
+	    <path>
+	 
+	      <!-- lib.home contains all jar files, in several subdirectories -->
+	      <fileset dir="${env.Lib}">
+	        <include name="**/*.*" />
+	      </fileset>
+	    </path>
+	  </pathconvert>
+	
+	<path id="buildpath">
+		<fileset dir="lib">
+		  <patternset id="non.test.sources">
+		    <include name="**/*.java"/>
+		  	<exclude name="**/*Tests.java"/>
+		    </patternset>
+		</fileset>
+	</path>	
+	
+    <!-- ================================= 
+          target: default              
+         ================================= -->
+    <target name="default" depends="fin" description="description">
+        
+    </target>
+	
+    <!-- - - - - - - - - - - - - - - - - - 
+          target: depends                      
+         - - - - - - - - - - - - - - - - - -->
+    <target name="depends">
+    </target>
+
+	<!-- ================================= 
+	          target: clean              
+	         ================================= -->
+	    <target name="clean" depends="depends" description="Clean target directory">
+	        <delete dir="${build}" />
+	    </target>
+<!-- ================================= 
+          target: init              
+         ================================= -->
+    <target name="init" depends="clean" description="Initialize target directory">
+        <mkdir dir="target"/>
+    	<propertyfile file="build.number">
+    	<entry key="build.number" type="int" operation="+" default="0"/>
+    	</propertyfile>
+    </target>
+
+	<!-- ================================= 
+          target: copyLib              
+         ================================= -->
+    <target name="copyLib" depends="init" description="Copy Library Files">
+        <copydir dest="target/lib" src="lib"></copydir>
+    	<manifestclasspath property = "library-list" jarfile=".">
+    	<classpath refid = "classpath"/>
+    	</manifestclasspath>
+    	<copyfile dest="${build}/${env.DosScript}" src="${env.DosScript}"/>
+    	<copydir dest="${compileTarget}/${env.ImageFolder}" src="${srcDir}/${env.ImageFolder}"/>
+    	<copydir dest="${compileTarget}/${env.HelpFolder}" src="${srcDir}/${env.HelpFolder}"/>
+    	<copyfile dest="${build}/${env.ShellScript}" src="${env.ShellScript}"/>
+    </target>
+	
+	<!-- ================================= 
+          target: compile              
+         ================================= -->
+    <target name="compile" depends="copyLib" description="Compile the Java source files">
+        <javac srcdir="${srcDir}"
+         destdir="${compileTarget}"
+         classpathref="classpath"
+         excludes="**/*Tests.java"
+         debug="off"
+	/>
+    </target>
+	
+	<!-- ================================= 
+          target: jar              
+         ================================= -->
+    <target name="jar" depends="compile" description="Make the JAR file">
+    	<property file="build.number"/>
+    	<jar destfile="${build}/QuickToDo.jar" basedir="${compileTarget}">
+            <manifest>
+                 <attribute name="Main-Class" value="Main"/>
+            	 <attribute name="Class-Path" value=".:${libs.project}"/>
+            	<attribute name="Implementation-Version" value="${build.number}"/>
+             </manifest>
+        </jar>
+    </target>
+	
+	<!-- ================================= 
+          target: fin              
+         ================================= -->
+    <target name="fin" depends="jar" description="Sets up permissions of jar">
+    	<chmod file = "${build}/QuickToDo.jar" perm="+x" ></chmod>
+        <chmod file = "${build}/${env.ShellScript}" perm="+x" ></chmod>
+    </target>
+
+</project>
