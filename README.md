@@ -1,4 +1,4 @@
 quicktodo
 =========
 
-QuickToDo
+QuickToDo - Task Scheduler and Planner
